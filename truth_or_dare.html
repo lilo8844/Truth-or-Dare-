@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRUTH OR DARE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fire: #FF4500;
+  --fire2: #FF8C00;
+  --ice: #00CFFF;
+  --ice2: #0080FF;
+  --dark: #080810;
+  --dark2: #0e0e1c;
+  --dark3: #14142a;
+  --gold: #FFD700;
+  --white: #F5F0FF;
+  --muted: rgba(245,240,255,0.5);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: var(--dark);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BG ── */
+#bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.18;
+  animation: orbDrift 12s ease-in-out infinite alternate;
+}
+.orb-fire { width: 600px; height: 600px; background: radial-gradient(circle, #FF4500, #FF8C00, transparent); top: -150px; left: -150px; animation-duration: 14s; }
+.orb-ice  { width: 500px; height: 500px; background: radial-gradient(circle, #00CFFF, #0040FF, transparent); bottom: -100px; right: -100px; animation-duration: 11s; animation-direction: alternate-reverse; }
+.orb-mid  { width: 300px; height: 300px; background: radial-gradient(circle, #8800FF, transparent); top: 40%; left: 40%; animation-duration: 9s; }
+@keyframes orbDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.15); } }
+
+/* grid texture */
+#bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── MAIN WRAPPER ── */
+#app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 16px 60px; }
+
+/* ── HEADER ── */
+header {
+  width: 100%; max-width: 860px;
+  padding: 40px 0 20px;
+  text-align: center;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(64px, 14vw, 130px);
+  letter-spacing: 6px;
+  line-height: 0.85;
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  flex-wrap: wrap;
+}
+.logo-truth {
+  background: linear-gradient(135deg, #00CFFF, #0060FF);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 30px #00CFFF88);
+}
+.logo-or {
+  font-size: 0.35em;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 3px;
+  -webkit-text-fill-color: rgba(255,255,255,0.3);
+}
+.logo-dare {
+  background: linear-gradient(135deg, #FF8C00, #FF2200);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 30px #FF450088);
+}
+.tagline {
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px; font-weight: 300; font-style: italic;
+  color: var(--muted); letter-spacing: 4px; text-transform: uppercase;
+  margin-top: 10px;
+}
+
+/* ── SETUP SCREEN ── */
+#setup-screen { width: 100%; max-width: 860px; animation: fadeUp .5s ease forwards; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: none; } }
+
+/* players section */
+.section-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 6px; color: var(--muted);
+  text-transform: uppercase; margin-bottom: 12px; margin-top: 32px;
+}
+.player-input-row {
+  display: flex; gap: 10px; margin-bottom: 14px;
+}
+.inp {
+  flex: 1; padding: 14px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: var(--white); font-size: 16px; font-family: 'Barlow Condensed', sans-serif;
+  outline: none; transition: border-color .2s;
+}
+.inp:focus { border-color: rgba(255,255,255,0.4); }
+.inp::placeholder { color: rgba(255,255,255,0.25); }
+.btn-add {
+  width: 48px; height: 48px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--fire2), var(--fire));
+  border: none; color: #fff; font-size: 24px; font-weight: 700;
+  cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+.btn-add:hover { transform: scale(1.08); box-shadow: 0 4px 20px #FF450066; }
+
+.players-grid {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; min-height: 44px;
+}
+.player-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 15px; font-weight: 600; letter-spacing: .5px;
+  border: 1px solid; cursor: default;
+  animation: popIn .2s ease forwards;
+}
+@keyframes popIn { from { opacity:0; transform: scale(.7); } to { opacity:1; transform: scale(1); } }
+.player-chip .del { background: none; border: none; cursor: pointer; opacity: .5; font-size: 13px; padding: 0 0 0 2px; transition: opacity .2s; }
+.player-chip .del:hover { opacity: 1; }
+.p-cnt { font-size: 12px; color: var(--muted); height: 18px; }
+
+/* settings row */
+.settings-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px;
+}
+@media(max-width:500px){ .settings-row { grid-template-columns: 1fr; } }
+.setting-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px; padding: 16px 18px;
+}
+.setting-title { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+
+/* difficulty chips */
+.diff-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.diff-chip {
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .2s; font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .5px;
+}
+.diff-chip:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+.diff-chip.on { color: #000; border-color: transparent; }
+.diff-chip.easy.on { background: linear-gradient(135deg,#00CFFF,#0080FF); box-shadow: 0 3px 12px #00CFFF44; }
+.diff-chip.medium.on { background: linear-gradient(135deg,#FFD700,#FF8C00); box-shadow: 0 3px 12px #FFD70044; }
+.diff-chip.hard.on { background: linear-gradient(135deg,#FF4500,#CC0000); box-shadow: 0 3px 12px #FF450044; }
+.diff-chip.extreme.on { background: linear-gradient(135deg,#8800FF,#FF0080); box-shadow: 0 3px 12px #8800FF44; }
+
+/* language chips */
+.lang-chips { display: flex; gap: 8px; }
+.lang-chip {
+  flex: 1; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.12); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .2s; font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px; text-align: center;
+}
+.lang-chip.on { background: rgba(255,255,255,0.12); color: var(--white); border-color: rgba(255,255,255,0.35); }
+
+/* start button */
+.btn-start {
+  width: 100%; padding: 20px; margin-top: 28px;
+  background: linear-gradient(135deg, #FF8C00, #FF2200, #FF8C00);
+  background-size: 200%;
+  border: none; border-radius: 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 5px; color: #fff;
+  cursor: pointer; transition: all .3s;
+  box-shadow: 0 8px 32px #FF450055;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+.btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 14px 40px #FF450077; }
+.btn-start:disabled { opacity: .3; cursor: not-allowed; animation: none; }
+
+/* ── GAME SCREEN ── */
+#game-screen { display: none; width: 100%; max-width: 860px; }
+
+/* turn header */
+.turn-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0 16px; flex-wrap: wrap; gap: 10px;
+}
+.turn-player {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 6vw, 46px);
+  letter-spacing: 3px;
+}
+.turn-label { font-size: 12px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.round-badge {
+  padding: 8px 18px; border-radius: 8px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  font-size: 13px; font-weight: 600; letter-spacing: 2px; color: var(--muted);
+}
+
+/* the big choose buttons */
+.choose-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-bottom: 20px;
+}
+@media(max-width:480px){ .choose-row { grid-template-columns: 1fr; } }
+
+.choose-btn {
+  position: relative; overflow: hidden;
+  padding: 40px 20px 36px;
+  border: 2px solid; border-radius: 18px;
+  cursor: pointer; transition: all .3s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: transparent;
+}
+.choose-btn::before {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .3s;
+}
+.choose-btn:hover::before { opacity: 1; }
+.choose-btn:hover { transform: translateY(-4px); }
+.choose-btn:active { transform: translateY(-1px); }
+
+.btn-truth {
+  border-color: #00CFFF55;
+  box-shadow: 0 4px 24px #00CFFF22;
+}
+.btn-truth::before { background: linear-gradient(135deg, rgba(0,207,255,.1), rgba(0,80,255,.08)); }
+.btn-truth:hover { border-color: #00CFFF; box-shadow: 0 8px 40px #00CFFF44; }
+.btn-truth .btn-emoji { font-size: 56px; filter: drop-shadow(0 0 16px #00CFFF); }
+.btn-truth .btn-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; letter-spacing: 4px;
+  background: linear-gradient(135deg,#00CFFF,#0060FF);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.btn-truth .btn-sub { font-size: 13px; color: var(--muted); font-style: italic; }
+
+.btn-dare {
+  border-color: #FF450055;
+  box-shadow: 0 4px 24px #FF450022;
+}
+.btn-dare::before { background: linear-gradient(135deg, rgba(255,69,0,.1), rgba(255,0,0,.08)); }
+.btn-dare:hover { border-color: #FF4500; box-shadow: 0 8px 40px #FF450044; }
+.btn-dare .btn-emoji { font-size: 56px; filter: drop-shadow(0 0 16px #FF4500); }
+.btn-dare .btn-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; letter-spacing: 4px;
+  background: linear-gradient(135deg,#FF8C00,#FF2200);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.btn-dare .btn-sub { font-size: 13px; color: var(--muted); font-style: italic; }
+
+/* QUESTION CARD */
+#q-card {
+  display: none;
+  position: relative; overflow: hidden;
+  padding: 40px 36px; border-radius: 20px;
+  border: 2px solid transparent;
+  margin-bottom: 20px;
+  animation: cardReveal .4s cubic-bezier(.175,.885,.32,1.275) forwards;
+}
+@keyframes cardReveal { from { opacity:0; transform: scale(.88) translateY(20px); } to { opacity:1; transform: none; } }
+#q-card.truth-card {
+  background: linear-gradient(135deg, rgba(0,207,255,.08), rgba(0,60,180,.06));
+  border-color: #00CFFF55;
+  box-shadow: 0 8px 48px #00CFFF22, inset 0 1px 0 rgba(0,207,255,.2);
+}
+#q-card.dare-card {
+  background: linear-gradient(135deg, rgba(255,100,0,.1), rgba(180,0,0,.07));
+  border-color: #FF450055;
+  box-shadow: 0 8px 48px #FF450022, inset 0 1px 0 rgba(255,100,0,.2);
+}
+.q-type-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 6px;
+  margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+}
+.truth-card .q-type-label { color: #00CFFF; }
+.dare-card .q-type-label { color: #FF8C00; }
+.q-type-line { flex: 1; height: 1px; }
+.truth-card .q-type-line { background: linear-gradient(90deg,#00CFFF55,transparent); }
+.dare-card .q-type-line { background: linear-gradient(90deg,#FF450055,transparent); }
+
+#q-text {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 700; line-height: 1.35;
+  color: var(--white); letter-spacing: .5px;
+  margin-bottom: 28px;
+}
+.q-card-bg-emoji {
+  position: absolute; right: 24px; bottom: 16px;
+  font-size: 90px; opacity: 0.07; pointer-events: none;
+  line-height: 1;
+}
+
+/* action buttons */
+.q-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-next {
+  flex: 1; min-width: 120px; padding: 14px 20px;
+  border: none; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 3px; cursor: pointer; transition: all .2s;
+}
+.btn-next-main {
+  background: linear-gradient(135deg,var(--fire2),var(--fire));
+  color: #fff; box-shadow: 0 4px 16px #FF450044;
+}
+.btn-next-main:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #FF450066; }
+.btn-skip {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--muted);
+}
+.btn-skip:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+.btn-change {
+  background: rgba(0,207,255,0.08); border: 1px solid rgba(0,207,255,0.2);
+  color: #00CFFF;
+}
+.btn-change:hover { background: rgba(0,207,255,0.15); }
+
+/* players bar */
+.players-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 14px 0; margin-bottom: 10px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.pbar-item {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 14px; font-weight: 700; letter-spacing: .5px;
+  border: 1px solid; opacity: .45; transition: all .3s;
+}
+.pbar-item.active { opacity: 1; transform: scale(1.05); }
+
+/* scores */
+.scores-strip {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.score-item {
+  flex: 1; min-width: 100px;
+  padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 14px; font-weight: 600;
+}
+.score-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; color: var(--gold);
+}
+
+/* bottom controls */
+.bottom-bar {
+  display: flex; gap: 10px; padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.btn-sm {
+  padding: 10px 18px; border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; transition: all .2s; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05); color: var(--muted);
+}
+.btn-sm:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+.btn-sm-red { border-color: rgba(255,69,0,.3); color: #FF6633; background: rgba(255,69,0,.07); }
+.btn-sm-red:hover { background: rgba(255,69,0,.15); color: #FF4500; }
+
+/* ── PASS SCREEN ── */
+#pass-screen {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: #000;
+  flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px;
+}
+.pass-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px,12vw,100px); letter-spacing: 4px;
+  color: var(--white); margin-bottom: 10px;
+}
+.pass-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px,8vw,70px); letter-spacing: 4px;
+  background: linear-gradient(135deg,#FFD700,#FF8C00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 30px;
+}
+.pass-sub { font-size: 15px; color: var(--muted); letter-spacing: 2px; margin-bottom: 40px; font-style: italic; }
+.btn-pass-ready {
+  padding: 18px 48px; border-radius: 14px;
+  background: linear-gradient(135deg,#00CFFF,#0060FF);
+  border: none; font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 4px; color: #fff;
+  cursor: pointer; transition: all .3s;
+  box-shadow: 0 6px 28px #00CFFF55;
+}
+.btn-pass-ready:hover { transform: translateY(-3px); box-shadow: 0 12px 36px #00CFFF77; }
+
+/* countdown ring */
+.pass-ring-wrap { position: relative; width: 120px; height: 120px; margin: 0 auto 30px; }
+.pass-ring-wrap svg { transform: rotate(-90deg); }
+.pass-ring-bg { fill: none; stroke: rgba(255,255,255,.1); stroke-width: 6; }
+.pass-ring-fill { fill: none; stroke: var(--gold); stroke-width: 6; stroke-linecap: round;
+  stroke-dasharray: 339; stroke-dashoffset: 339; transition: stroke-dashoffset .9s linear; }
+.pass-num {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: var(--gold);
+}
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  padding: 12px 24px; border-radius: 10px;
+  background: rgba(20,20,40,.95); border: 1px solid rgba(255,255,255,.15);
+  font-size: 14px; font-weight: 600; letter-spacing: .5px;
+  opacity: 0; transition: all .3s; pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* scoreboard modal */
+#scoreboard-modal {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.88); backdrop-filter: blur(12px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+#scoreboard-modal.open { display: flex; }
+.sb-card {
+  width: 100%; max-width: 480px;
+  background: var(--dark2); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px; padding: 32px 28px;
+}
+.sb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px; letter-spacing: 5px; color: var(--gold);
+  text-align: center; margin-bottom: 24px;
+}
+.sb-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+}
+.sb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--muted); width: 28px; }
+.sb-name { flex: 1; font-size: 18px; font-weight: 700; }
+.sb-score { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gold); }
+.sb-close {
+  width: 100%; padding: 14px; margin-top: 16px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px; font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 3px; color: var(--white);
+  cursor: pointer; transition: all .2s;
+}
+.sb-close:hover { background: rgba(255,255,255,.12); }
+</style>
+</head>
+<body>
+
+<div id="bg">
+  <div class="bg-orb orb-fire"></div>
+  <div class="bg-orb orb-ice"></div>
+  <div class="bg-orb orb-mid"></div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">
+      <span class="logo-truth">TRUTH</span>
+      <span class="logo-or">OR</span>
+      <span class="logo-dare">DARE</span>
+    </div>
+    <div class="tagline">The Ultimate Group Game — No Limits</div>
+  </header>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+
+    <div class="section-label">Add Players</div>
+    <div class="player-input-row">
+      <input class="inp" id="p-inp" placeholder="Enter player name..." maxlength="24" onkeydown="if(event.key==='Enter')addPlayer()">
+      <button class="btn-add" onclick="addPlayer()">+</button>
+    </div>
+    <div class="players-grid" id="p-grid"></div>
+    <div class="p-cnt" id="p-cnt"></div>
+
+    <div class="settings-row">
+      <div class="setting-box">
+        <div class="setting-title">Difficulty</div>
+        <div class="diff-chips">
+          <div class="diff-chip easy on" onclick="setDiff('easy',this)">😊 Easy</div>
+          <div class="diff-chip medium" onclick="setDiff('medium',this)">😏 Medium</div>
+          <div class="diff-chip hard" onclick="setDiff('hard',this)">🔥 Hard</div>
+          <div class="diff-chip extreme" onclick="setDiff('extreme',this)">💀 Extreme</div>
+        </div>
+      </div>
+      <div class="setting-box">
+        <div class="setting-title">Language</div>
+        <div class="lang-chips">
+          <div class="lang-chip on" onclick="setLang('en',this)">🇬🇧 English</div>
+          <div class="lang-chip" onclick="setLang('ku',this)">🌙 Kurdish</div>
+          <div class="lang-chip" onclick="setLang('ar',this)">🌟 Arabic</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-start" id="start-btn" onclick="startGame()" disabled>
+      ▶ START GAME
+    </button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen">
+
+    <div class="turn-header">
+      <div>
+        <div class="turn-label">It's your turn</div>
+        <div class="turn-player" id="turn-player">—</div>
+      </div>
+      <div class="round-badge" id="round-badge">ROUND 1</div>
+    </div>
+
+    <div class="players-bar" id="pbar"></div>
+    <div class="scores-strip" id="scores-strip"></div>
+
+    <div class="choose-row" id="choose-row">
+      <button class="choose-btn btn-truth" onclick="pick('truth')">
+        <div class="btn-emoji">🧊</div>
+        <div class="btn-label">TRUTH</div>
+        <div class="btn-sub">Confess something real</div>
+      </button>
+      <button class="choose-btn btn-dare" onclick="pick('dare')">
+        <div class="btn-emoji">🔥</div>
+        <div class="btn-label">DARE</div>
+        <div class="btn-sub">Accept the challenge</div>
+      </button>
+    </div>
+
+    <div id="q-card">
+      <div class="q-type-label">
+        <span id="q-type-text">TRUTH</span>
+        <div class="q-type-line"></div>
+      </div>
+      <div id="q-text">—</div>
+      <div class="q-card-bg-emoji" id="q-bg-emoji">❓</div>
+      <div class="q-actions">
+        <button class="btn-next btn-next-main" onclick="nextTurn()">✓ Done — Next Player</button>
+        <button class="btn-next btn-change" onclick="reroll()">↻ New Question</button>
+        <button class="btn-next btn-skip" onclick="skip()">→ Skip</button>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn-sm" onclick="showScoreboard()">🏆 Scores</button>
+      <button class="btn-sm" onclick="toggleLang()">🌐 Language</button>
+      <button class="btn-sm btn-sm-red" onclick="endGame()">✕ End Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASS SCREEN -->
+<div id="pass-screen">
+  <div class="pass-title">PASS TO</div>
+  <div class="pass-name" id="pass-name">—</div>
+  <div class="pass-ring-wrap">
+    <svg viewBox="0 0 120 120" width="120" height="120">
+      <circle class="pass-ring-bg" cx="60" cy="60" r="54"/>
+      <circle class="pass-ring-fill" id="pass-ring" cx="60" cy="60" r="54"/>
+    </svg>
+    <div class="pass-num" id="pass-num">5</div>
+  </div>
+  <div class="pass-sub" id="pass-sub">Cover the screen while passing the phone</div>
+  <button class="btn-pass-ready" id="pass-ready-btn" style="display:none" onclick="passReady()">I'M READY 👁️</button>
+</div>
+
+<!-- SCOREBOARD MODAL -->
+<div id="scoreboard-modal">
+  <div class="sb-card">
+    <div class="sb-title">🏆 SCORES</div>
+    <div id="sb-list"></div>
+    <button class="sb-close" onclick="document.getElementById('scoreboard-modal').classList.remove('open')">CLOSE</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+// DATA
+// ═══════════════════════════════════
+const DATA = {
+  en: {
+    easy: {
+      truth: [
+        "What's the most embarrassing thing that happened to you this week?",
+        "What's a habit you have that you're a little ashamed of?",
+        "Have you ever lied to get out of plans with friends?",
+        "What's the worst gift you've ever received?",
+        "Have you ever pretended to be sick to avoid something?",
+        "What's the most childish thing you still do?",
+        "What's a show or movie you pretend you haven't seen?",
+        "Who in this room would you trade lives with for a day?",
+        "What's the most ridiculous thing you've ever bought?",
+        "Have you ever talked badly about someone in this room?",
+        "What's the longest you've gone without showering?",
+        "What's the weirdest food combination you actually enjoy?",
+        "Have you ever cheated in a board game?",
+        "What's a secret talent nobody knows you have?",
+        "What's the most embarrassing song on your playlist?",
+        "Have you ever eaten food that fell on the floor?",
+        "What's the last lie you told?",
+        "Who was your first crush?",
+        "What's the most annoying habit of someone in this room?",
+        "Have you ever read someone's messages without them knowing?",
+      ],
+      dare: [
+        "Text the 5th contact in your phone: 'I think we need to talk 👀'",
+        "Do your best impression of someone in this room.",
+        "Speak in an accent for the next 3 rounds.",
+        "Let someone post anything on your Instagram story.",
+        "Do 20 jumping jacks right now.",
+        "Eat a spoonful of hot sauce.",
+        "Call a family member and say 'I have something important to tell you' then hang up.",
+        "Do your best catwalk across the room.",
+        "Let someone draw on your face with a marker.",
+        "Talk like a robot for the next 2 minutes.",
+        "Do your best impression of a famous person.",
+        "Sing the chorus of a song of the group's choice.",
+        "Hold a plank for 30 seconds.",
+        "Let someone go through your camera roll for 30 seconds.",
+        "Do 10 push-ups.",
+        "Speak only in questions for the next 2 rounds.",
+        "Post an unflattering selfie on your WhatsApp status.",
+        "Try to lick your elbow.",
+        "Do the worm.",
+        "Let the group rename your phone contact for themselves.",
+      ]
+    },
+    medium: {
+      truth: [
+        "What's the biggest lie you've told someone you love?",
+        "Have you ever had a crush on a friend's partner?",
+        "What's something you've done that you've never told your parents?",
+        "What's the most money you've ever wasted on something stupid?",
+        "Have you ever ghosted someone? Who and why?",
+        "What's the pettiest thing you've ever done for revenge?",
+        "Have you ever stolen something? What was it?",
+        "What's your most irrational fear?",
+        "Have you ever faked being sick to skip school or work?",
+        "What's the most desperate thing you've done for attention?",
+        "Have you ever spread a rumor about someone?",
+        "What's the most embarrassing thing you've done for money?",
+        "When was the last time you cried and why?",
+        "Have you ever had feelings for someone in this room?",
+        "What's one thing you would change about your personality?",
+        "What's the biggest mistake you've made in a relationship?",
+        "Have you ever pretended to like someone just to get something from them?",
+        "What's a secret you've kept from your best friend?",
+        "What's the worst thing you've done that you got away with?",
+        "What's one thing you've always wanted to do but are too scared?",
+      ],
+      dare: [
+        "Send a risky text to the last person in your messages.",
+        "Let someone post a status on your behalf right now.",
+        "Go outside and scream at the top of your lungs.",
+        "Do a dramatic reading of your last 5 texts.",
+        "Call your crush or ex and say 'I've been thinking about you.'",
+        "Let someone give you a makeover with whatever they find.",
+        "Wear your clothes inside out for the rest of the game.",
+        "Do 1 minute of stand-up comedy about the people in this room.",
+        "Let someone guess your password — give them 3 tries.",
+        "Dance nonstop to a song chosen by the group.",
+        "Confess something to the person sitting next to you.",
+        "Let the group DM someone from your phone.",
+        "Do push-ups every time someone says your name for the next round.",
+        "Eat something mixed together that you'd normally never combine.",
+        "Rate everyone in the room from most to least attractive.",
+        "Send a 'I miss you' text to the most random person in your contacts.",
+        "Talk in slow motion for the next 3 rounds.",
+        "Swap shirts with someone in the room.",
+        "Do a full minute of silent acting — group has to guess what you are.",
+        "Pretend to be a waiter and take drink orders from everyone.",
+      ]
+    },
+    hard: {
+      truth: [
+        "What's the most shameful thing you've done that nobody knows about?",
+        "Have you ever been in love with two people at the same time?",
+        "What's the worst thought you've ever had about a family member?",
+        "What's something you've done that you're genuinely not proud of?",
+        "Have you ever seriously considered ending a close friendship? With who?",
+        "What's the most manipulative thing you've ever done?",
+        "Have you ever been attracted to someone you absolutely shouldn't be?",
+        "What's the most selfish decision you've ever made?",
+        "Have you ever betrayed someone's trust? What happened?",
+        "What's the darkest thought you've had in the past month?",
+        "Have you ever done something just to make someone jealous?",
+        "What's a secret you're terrified people will find out?",
+        "What's the meanest thing you've ever said to someone?",
+        "Have you ever lied under pressure and let someone else take the blame?",
+        "What's one thing you genuinely regret about a past relationship?",
+        "Have you ever done something you knew was wrong just because you wanted to?",
+        "What's the most toxic thing you've done in a friendship?",
+        "Have you ever had a moment where you truly hated someone in this room?",
+        "What's something you've never admitted to anyone here?",
+        "What would destroy your reputation if it got out?",
+      ],
+      dare: [
+        "Post a full, unfiltered photo of yourself with no caption.",
+        "Call someone who has unread messages from you and explain why you left them on read.",
+        "Let someone send any text from your phone to anyone in your contacts.",
+        "Confess your biggest secret to the group.",
+        "Sit on someone's lap for the next 3 rounds.",
+        "Let the group choose a dare for you — you can't refuse.",
+        "Switch phones with someone for 10 minutes.",
+        "Drink a disgusting mystery drink the group makes for you.",
+        "Let someone go through your DMs for 1 full minute.",
+        "FaceTime someone random and serenade them.",
+        "Let someone post anything on your main social media.",
+        "Say something genuinely nice about every person in the room.",
+        "Describe your ideal type — in embarrassing detail.",
+        "Do 2 minutes of improv where you're madly in love with someone in the room.",
+        "Let the group delete any 3 apps off your phone.",
+        "Wear an ice cube under your shirt until it melts.",
+        "Speak in a baby voice for the next 4 rounds.",
+        "Rate everyone's personality, looks, and humor out of 10 — out loud.",
+        "Whisper something embarrassing in the ear of each person.",
+        "Propose to someone in the room — full speech, get on one knee.",
+      ]
+    },
+    extreme: {
+      truth: [
+        "What's the one thing you'd never want your parents to know you did?",
+        "What's your most controversial opinion about someone in this room?",
+        "Have you ever done something illegal? Confess.",
+        "What would you do if you found out your best friend was talking badly about you?",
+        "What's the one thing you wish you could undo from the last year?",
+        "What's the most embarrassing thing that has ever happened to you in public?",
+        "What's a dealbreaker you've compromised on for someone?",
+        "Who here do you think would make the worst partner — and why?",
+        "Have you ever faked a feeling you didn't have to keep someone happy?",
+        "What's the worst thing you've thought about yourself?",
+        "Rank everyone in this room by how much you actually trust them.",
+        "What's the one secret that could blow up a relationship in your life?",
+        "Have you ever been tempted to do something you'd be arrested for?",
+        "Who in this room have you judged most unfairly?",
+        "If you had to delete one person from your life, who would it be and why?",
+        "What's something you've wanted to say to someone in this room for a while?",
+        "What's the most desperate thing you've done to get someone's attention?",
+        "Confess the thought that's been living rent-free in your head this week.",
+        "What's the biggest lie you've ever believed about yourself?",
+        "If everyone in this room had to know one thing about you, what would you least want it to be?",
+      ],
+      dare: [
+        "Do a full 3-minute roast of the person next to you.",
+        "Let the group write a message and send it from your phone to any contact they pick.",
+        "Tell everyone here your honest opinion of them — no filter.",
+        "Let someone post a story with your biggest secret written on it.",
+        "Change your profile picture to something the group chooses for 24 hours.",
+        "Reveal the last 5 people you searched on social media.",
+        "Say one true thing about each person that you've never said out loud.",
+        "Give your phone to the group for 5 full minutes — no limits.",
+        "Wear a sign on your back for 3 rounds that says whatever the group writes.",
+        "Act out your most embarrassing memory in full detail.",
+        "Let the group compose and send an email from your account.",
+        "Read out your most embarrassing journal entry, text, or note.",
+        "Have a full serious conversation with an imaginary person for 2 minutes.",
+        "Confess a lie you've told that you never came clean about.",
+        "Let someone rate your selfie folder and react to each photo out loud.",
+        "Do something that scares you — let the group decide what.",
+        "Tell your most embarrassing secret — on camera.",
+        "Let the group change your bio on any social platform.",
+        "Act out a scene as if you're in love with the person of the group's choosing.",
+        "For the rest of the game, do whatever the person to your left says.",
+      ]
+    }
+  },
+  ku: {
+    easy: {
+      truth: [
+        "کامانیان باشترین یاریزانی ئەم ژوورەیە؟","داڕووخانترین ئەرکی کردووتت چییە؟","هەرگیز دروو گوتووتە هاوڕێیەکت؟","چی جۆر خواردنی ناخۆشتە بەڵام دەیخۆیت؟","داڕووخانترین ئامانجی موبایلەکەت چییە؟","هەرگیز دانیشتووی کتێبخانەکەی کەسێکیتی؟","خووی شەرمەزارکەرەکەت چییە؟","کام ئەوەی لە ژوورەکەدا باشتر دەبژێریت؟","کامین جۆرە موزیکی دەکەیت نهێنانە؟","هەرگیز چیت بردووە؟",
+      ],
+      dare: [
+        "دەنگی ماکیانت بکە ١ خولەک!","رووخسارێکی گوریلت پیشانبدە!","گۆرانییەکی کوردی بخوێنە!","وەکوو ئاژەڵ دەنگ بکە — گروپ دیاری بکات!","١٠ خێزانی بکە!","مۆبایلەکەت بدەیە دەست گروپ ١ خولەک!","سفلیەکی شەرمەزارکەر بنێرە ستاتیکیتەوە!","وەکوو ئیلۆن ماسک ١ خولەک قسە بکە!","شاژ دانە بوێری بکە!","وەکوو موستمەند تاوی خاک دەستت ببە!",
+      ]
+    },
+    medium: {
+      truth: [
+        "گەورەترین دروویی کە گوتووتت چییە؟","هەرگیز حەزت لە پارتنەری هاوڕێیەکت بووە؟","ناشیاوترین کارە کردووتت چییە؟","هەرگیز کەسێکت غەیبەتی کردووە؟","گەورەترین تۆقینەوەت لە ئیشیان چییە؟","ترسناکترین کارە کردووتت چییە؟","کام کەسی ئەم ژوورەدا باشتر دەبنێریت هاوڕێ؟","هەرگیز سندوقی کەسێکیتی بردووە؟","داڕووخانترین ئەرکی سۆشیال مێدیاکەتت چییە؟","گرنگترین نهێنەکەت چییە؟",
+      ],
+      dare: [
+        "نامەی دڵداری بنووسە بۆ کەسی ئامادەیت!","بگە دەرەوە و دادبانگی بکە!","پیاو/ژنی ئاتێژ بکە بۆ ١ خولەک!","ئەو کەسەی پاشتر پەیامت نەدایەوە پەیام بکە!","ستاتیکیت بگۆڕە بە وێنەی گروپ دیاریکردوو!","نهێنیەکت بپاڵێوە بۆ گروپ!","ناوی هەموو ئەندامەکانی گروپ بە مکرۆفۆن بانگ بکە!","کومیدی ستاند ئەپ بکە ١ خولەک!","رووخسارەکانی جۆراوجۆر پیشانبدە!","لەپەکانی ئێستای ئاسمانی بکە!",
+      ]
+    },
+    hard: {
+      truth: [
+        "شەرمەزارترین کارت کردووە؟","هەرگیز دوو کەستت حەزی لێ بووە هاوکات؟","نهێنیەکت هەیە کە ترست لێیەتی هاوڕێکانت بزانن؟","گەورەترین خیانەتی کردووتت چییە؟","ناخۆشترین بیرکردنەوەیت لەسەر کەسێک لە ژوورەکەدا چییە؟","گەورەترین داخت چییە؟","کامین کار لە ژیانتدا دووبارە ناکەیت؟","شەرمەزارترین موومەنتەکەت چییە؟","مەقسەدی دروویت چییە؟","هەرگیز کەسێکیتی بە مەبەستی تکبانی داناوە؟",
+      ],
+      dare: [
+        "پەیام بنێرە بە کەسێکی بتریت و بڵێ نازم بیت!","بەشداری فۆتۆی گروپ بکە بەبێ سنسۆر!","هەموو کەسی ژوورەکەدا نەرخ بدە ١-١٠!","هەموو کەسی ژوورەکەدا یەک ئێکریت بڵێ!","موبایلەکەت بدەیە دەست گروپ ٥ خولەک!","ئەوەی بترسیت بیکە — گروپ دیاری بکات!","شتێکی شەرمەزارکەر ئاشکرا بکە!","نهێنیەکی گەورەت بڵێ لەبەرامبەر هەموویان!","وەکوو ماخ دانیشە ٣ خولەک!","کۆمەڵی خەبات بکەرەوە!",
+      ]
+    },
+    extreme: {
+      truth: [
+        "مامەکانت/باپیرەکانت کامانیان ناخۆشتە؟","کە باشتر دەبینیت چی دەیکەیت؟","کامین لایەنی تایبەتیت دەیەوێ گۆڕیبیت؟","ترسناکترین بیرکردنەوەی هەفتەی ئێستات چییە؟","ئەگەر دەتوانی یەک کەسی ژیانتت بسڕیتەوە کێ دەبوو؟","نهێنیەکت هەیە کە گەر دەرکەوتبایە خراپت دەکرد؟","کامین کەس لە ژوورەکەدا باشتر ئیمانت پێیەتی؟","شەرمەزارترین مۆمەنتی پوبلیکیت چییە؟","کامانی ئەم یاریزانانە باشتر لەگەڵ دەژیيتەوە؟","گەورەترین دروویت کە هەرگیز نەکرایەوە چییە؟",
+      ],
+      dare: [
+        "سێ خولەک کەسی تەنیشتت ڕووت بکە و قسە بکە!","موبایلەکەت بدەیە دەست گروپ ١٠ خولەک — بێ مەرج!","ئەوەی بتری بکە!","کومیدی ١ خولەک دربارەی هەموو ئەندامەکانی گروپ بکە!","هاندانی کاملی بۆ کەسێکی گروپ بنووسە!","نهێنیت بۆ ستاتیک زیاد بکە ٢٤ کاتژمێر!","پرسیاری شەرمەزارکەر ببەرێت — بە پووزخەند!","کۆمپوزیشنی تایبەتیت بۆ گروپ بخوێنە!","خشانەوەی تایبەتت پیشانبدە!","هەر شتێک گروپ بڵێت بیکە — بێ مەرج!",
+      ]
+    }
+  },
+  ar: {
+    easy: {
+      truth: [
+        "ما أكثر موقف محرج تعرضت له؟","هل كذبت على أحد في هذه الغرفة؟","ما الأغنية المحرجة في قائمتك؟","هل أكلت طعاماً وقع على الأرض؟","ما العادة السيئة التي تستحي منها؟","من تبادل معه الحياة ليوم واحد؟","ما أغرب مزيج أكل تحبه؟","هل غششت في لعبة من قبل؟","ما المشتريات الأكثر غباءً في حياتك؟","هل قرأت رسائل أحدهم سراً؟",
+      ],
+      dare: [
+        "قلد شخصاً في الغرفة!","تكلم بلكنة مختلفة لـ3 جولات!","غنِّ مقطعاً من أغنية يختارها الفريق!","افعل 20 قفزة الآن!","أرسل رسالة غريبة لخامس شخص في جهات اتصالك!","دع شخصاً يرسل أي شيء من هاتفك!","افعل 10 ضغطات أرضية!","تحدث كالإنسان الآلي لدقيقتين!","اصنع أغرب وجه يمكنك!","ابق صامتاً لمدة دقيقتين كاملتين!",
+      ]
+    },
+    medium: {
+      truth: [
+        "ما أكبر كذبة قلتها لشخص تحبه؟","هل أحببت شريك صديقك يوماً؟","ما أسوأ شيء فعلته وأفلت به؟","هل نشرت إشاعة عن أحد؟","ما أكثر قرار أناني اتخذته؟","هل خنت ثقة أحد؟","ما أشد خوف غير منطقي لديك؟","متى كانت آخر مرة بكيت ولماذا؟","هل لديك مشاعر لأحد في هذه الغرفة؟","ما السر الذي تخفيه عن أقرب الناس إليك؟",
+      ],
+      dare: [
+        "اتصل بشخص قديم وقل 'اشتقت إليك'!","دع الفريق يكتب وينشر من هاتفك!","اخرج واصرخ بأعلى صوت ممكن!","غير صورة ملفك الشخصي لما يختاره الفريق!","اعترف بسرك الأكبر للمجموعة!","اجلس في حضن شخص لـ3 جولات!","تكلم ببطء شديد لجولتين!","بدّل قميصك مع شخص في الغرفة!","قيّم الجميع من 1 إلى 10 علناً!","تظاهر أنك نادل واستقبل طلبات الجميع!",
+      ]
+    },
+    hard: {
+      truth: [
+        "ما أكثر شيء مخزٍ فعلته ولم يعلم به أحد؟","هل أحببت شخصين في نفس الوقت؟","ما أكثر قرار تمانيت أنك لم تتخذه؟","ما أسوأ فكرة خطرت ببالك عن شخص في الغرفة؟","هل خانت ثقة صديقك المقرب يوماً؟","ما أكبر خطأ في علاقة سابقة؟","هل تصنعت مشاعر لإرضاء أحد؟","ما السر الذي تخشى انكشافه؟","من تحكم عليه بظلم هنا؟","ما أسوأ شيء قلته لأحد؟",
+      ],
+      dare: [
+        "أرسل رسالة مثيرة للجدل لآخر شخص في محادثاتك!","دع الفريق يتصفح هاتفك 5 دقائق كاملة!","اعترف بكذبة لم تعترف بها من قبل!","قيّم الجميع في الشخصية والمظهر والدكاء!","اكتب سرك على ورقة والصقها ظهرك!","افعل شيئاً يخيفك — الفريق يقرر!","اروِ ذكراك المحرجة بالتفصيل!","دع شخصاً يبعث أي رسالة من هاتفك!","خذ صورة غير مصفاة وارفعها!","اقترح الزواج من شخص في الغرفة بخطبة كاملة!",
+      ]
+    },
+    extreme: {
+      truth: [
+        "ما الذي تفعله الآن لو لم يعرف أحد؟","ما رأيك الحقيقي في كل شخص هنا؟","من في الغرفة لا تثق به أبداً؟","ما السر الذي قد يدمر علاقة في حياتك؟","من ستحذف من حياتك لو أمكنك؟","ما أكثر تصرف سلبي قمت به في صداقة؟","هل تمنيت أذى لأحد تعرفه؟","ما الحقيقة التي تخشى قولها لأحد هنا؟","ما أسوأ ما تعتقده عن نفسك؟","ماذا ستفعل لو عرفت أن صديقك يتحدث عنك بسوء؟",
+      ],
+      dare: [
+        "أجرِ مكالمة فيديو مع أول شخص في جهاتك!","دع الفريق يكتب منشوراً وينشره في حسابك الرئيسي!","قم بتمثيل أكثر ذكرياتك إحراجاً!","أخبر كل شخص بشيء لم تقله له من قبل!","دع الفريق يغير سيرتك الذاتية في أي منصة!","اقرأ آخر 5 رسائل مرسلة بصوت عالٍ!","افعل كل ما يقوله الشخص على يسارك لجولة!","سجل اعترافك بسرك الأكبر وأرسله!","دع الفريق يحذف 3 تطبيقات من هاتفك!","اجلس على حضن شخص واحكِ قصة مضحكة!",
+      ]
+    }
+  }
+};
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let players = [];
+let scores = {};
+let turnIdx = 0;
+let round = 1;
+let curDiff = 'easy';
+let curLang = 'en';
+let passTimer = null;
+const COLORS = ['#FF4500','#00CFFF','#FFD700','#00FF88','#FF00CC','#8800FF','#FF8C00','#00FFFF','#FF3366','#AAFFAA'];
+const EMOJIS = { truth: '🧊', dare: '🔥' };
+
+const G = id => document.getElementById(id);
+
+// ═══════════════════════════════════
+// SETUP
+// ═══════════════════════════════════
+function addPlayer() {
+  const inp = G('p-inp');
+  const nm = (inp.value || '').trim();
+  if (!nm || players.includes(nm)) { inp.value = ''; return; }
+  players.push(nm);
+  scores[nm] = 0;
+  inp.value = '';
+  renderChips();
+  inp.focus();
+}
+
+function removePlayer(nm) {
+  players = players.filter(p => p !== nm);
+  delete scores[nm];
+  renderChips();
+}
+
+function renderChips() {
+  const grid = G('p-grid');
+  grid.innerHTML = players.map((p, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<div class="player-chip" style="background:${c}18;border-color:${c}55;color:${c}">
+      ${p}
+      <button class="del" onclick="removePlayer('${p.replace(/'/g,"\\'")}')">✕</button>
+    </div>`;
+  }).join('');
+  const cnt = players.length;
+  G('p-cnt').textContent = cnt > 0 ? `${cnt} player${cnt>1?'s':''} added — need at least 2` : '';
+  G('start-btn').disabled = cnt < 2;
+}
+
+function setDiff(d, el) {
+  curDiff = d;
+  document.querySelectorAll('.diff-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function setLang(l, el) {
+  curLang = l;
+  document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ═══════════════════════════════════
+// GAME
+// ═══════════════════════════════════
+function startGame() {
+  if (players.length < 2) return;
+  G('setup-screen').style.display = 'none';
+  G('game-screen').style.display = 'block';
+  turnIdx = 0; round = 1;
+  renderTurn();
+}
+
+function renderTurn() {
+  const p = players[turnIdx];
+  G('turn-player').textContent = p;
+  G('turn-player').style.background = `linear-gradient(135deg, ${COLORS[turnIdx % COLORS.length]}, ${COLORS[(turnIdx+1) % COLORS.length]})`;
+  G('turn-player').style.webkitBackgroundClip = 'text';
+  G('turn-player').style.webkitTextFillColor = 'transparent';
+  G('round-badge').textContent = `ROUND ${round}`;
+  G('q-card').style.display = 'none';
+  G('choose-row').style.display = 'grid';
+  renderPbar();
+  renderScores();
+}
+
+function renderPbar() {
+  G('pbar').innerHTML = players.map((p, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<div class="pbar-item ${i===turnIdx?'active':''}" style="border-color:${c}55;background:${c}${i===turnIdx?'22':'0d'};color:${i===turnIdx?c:'rgba(255,255,255,.4)'}">${p}</div>`;
+  }).join('');
+}
+
+function renderScores() {
+  G('scores-strip').innerHTML = players.map((p, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<div class="score-item" style="border-color:${c}22">
+      <span style="color:${c};font-weight:700">${p}</span>
+      <span class="score-pts">${scores[p]}</span>
+    </div>`;
+  }).join('');
+}
+
+function pick(type) {
+  const pool = (DATA[curLang]?.[curDiff]?.[type]) || DATA.en.easy[type];
+  const q = pool[Math.floor(Math.random() * pool.length)];
+  G('q-text').textContent = q;
+  G('q-type-text').textContent = type.toUpperCase();
+  G('q-bg-emoji').textContent = type === 'truth' ? '🧊' : '🔥';
+  const card = G('q-card');
+  card.className = type === 'truth' ? 'truth-card' : 'dare-card';
+  card.style.display = 'block';
+  // re-trigger animation
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = ''; });
+  G('choose-row').style.display = 'none';
+  // store type for reroll
+  card._type = type;
+}
+
+function reroll() {
+  const type = G('q-card')._type || 'truth';
+  pick(type);
+}
+
+function skip() {
+  toast('Skipped — no points awarded');
+  advance(false);
+}
+
+function nextTurn() {
+  scores[players[turnIdx]] += 1;
+  toast(`+1 point for ${players[turnIdx]}! 🎉`);
+  advance(true);
+}
+
+function advance(earned) {
+  const next = (turnIdx + 1) % players.length;
+  if (next === 0) round++;
+  // show pass screen
+  const nextPlayer = players[next];
+  showPass(nextPlayer, () => {
+    turnIdx = next;
+    renderTurn();
+  });
+}
+
+// ═══════════════════════════════════
+// PASS SCREEN
+// ═══════════════════════════════════
+let passCallback = null;
+const PASS_SECS = 5;
+
+function showPass(name, cb) {
+  passCallback = cb;
+  G('pass-name').textContent = name;
+  G('pass-ready-btn').style.display = 'none';
+  G('pass-screen').style.display = 'flex';
+  G('pass-sub').textContent = 'Cover the screen while passing the phone';
+
+  let left = PASS_SECS;
+  const circ = 339;
+  const ring = G('pass-ring');
+  ring.style.strokeDashoffset = circ;
+  ring.style.stroke = 'var(--gold)';
+  G('pass-num').textContent = left;
+
+  clearInterval(passTimer);
+  passTimer = setInterval(() => {
+    left--;
+    ring.style.strokeDashoffset = circ * (left / PASS_SECS);
+    G('pass-num').textContent = Math.max(0, left);
+    if (left <= 2) ring.style.stroke = '#FF4500';
+    else if (left <= 3) ring.style.stroke = '#FF8C00';
+    if (left <= 0) {
+      clearInterval(passTimer);
+      G('pass-ready-btn').style.display = '';
+      G('pass-sub').textContent = "Phone passed! Tap when you're ready.";
+    }
+  }, 1000);
+}
+
+function passReady() {
+  clearInterval(passTimer);
+  G('pass-screen').style.display = 'none';
+  if (passCallback) passCallback();
+  passCallback = null;
+}
+
+// ═══════════════════════════════════
+// SCOREBOARD
+// ═══════════════════════════════════
+function showScoreboard() {
+  const sorted = [...players].sort((a, b) => scores[b] - scores[a]);
+  G('sb-list').innerHTML = sorted.map((p, i) => {
+    const medals = ['🥇','🥈','🥉'];
+    return `<div class="sb-row">
+      <div class="sb-rank">${medals[i] || (i+1)}</div>
+      <div class="sb-name" style="color:${COLORS[players.indexOf(p) % COLORS.length]}">${p}</div>
+      <div class="sb-score">${scores[p]}</div>
+    </div>`;
+  }).join('');
+  G('scoreboard-modal').classList.add('open');
+}
+
+// ═══════════════════════════════════
+// LANGUAGE TOGGLE IN-GAME
+// ═══════════════════════════════════
+function toggleLang() {
+  const langs = ['en','ku','ar'];
+  const names = { en:'English 🇬🇧', ku:'Kurdish 🌙', ar:'Arabic 🌟' };
+  const next = langs[(langs.indexOf(curLang) + 1) % langs.length];
+  curLang = next;
+  toast(`Language: ${names[next]}`);
+}
+
+// ═══════════════════════════════════
+// END GAME
+// ═══════════════════════════════════
+function endGame() {
+  clearInterval(passTimer);
+  G('pass-screen').style.display = 'none';
+  G('game-screen').style.display = 'none';
+  G('setup-screen').style.display = 'block';
+  // reset scores
+  players.forEach(p => { scores[p] = 0; });
+  toast('Game ended!');
+}
+
+// ═══════════════════════════════════
+// TOAST
+// ═══════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = G('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && G('setup-screen').style.display !== 'none') addPlayer();
+  if (e.code === 'Space' && G('pass-screen').style.display === 'flex') { e.preventDefault(); passReady(); }
+});
+</script>
+</body>
+</html>
